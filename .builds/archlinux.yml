@@ -1,0 +1,19 @@
+# build manifest for sr.ht
+image: archlinux
+packages:
+ - gnupg
+ - julia
+sources:
+ - https://git.sr.ht/~quf/Earley.jl
+tasks:
+ - run-tests-current: |
+    cd Earley.jl
+    julia --project=. -e 'import Pkg; Pkg.test()'
+ - download-lts: |
+    gpg --import - < Earley.jl/.builds/juliareleases.asc
+    curl -o julia-1.6.7-linux-x86_64.tar.gz 'https://julialang-s3.julialang.org/bin/linux/x64/1.6/julia-1.6.7-linux-x86_64.tar.gz'
+    curl 'https://julialang-s3.julialang.org/bin/linux/x64/1.6/julia-1.6.7-linux-x86_64.tar.gz.asc' | gpg --verify --trust-model always - julia-1.6.7-linux-x86_64.tar.gz
+    tar xzf julia-1.6.7-linux-x86_64.tar.gz
+ - run-tests-lts: |
+    cd Earley.jl
+    $HOME/julia-1.6.7/bin/julia --project=. -e 'import Pkg; Pkg.update(); Pkg.test()'
